@@ -1,0 +1,170 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-194319482450180852
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0acc9caea68f8c4b8c90c5e659b5f87, type: 3}
+  m_Name: 'SR_Scale-[Door Hole]'
+  m_EditorClassIdentifier: 
+  Logic: 0
+  Negate: 0
+  Global: 0
+  Enabled: 1
+  Ignore: 0
+  _editor_drawRule: 1
+  CellAllow: 1
+  AllConditionsMet: 1
+  ScaleMultiplier: {x: 0.5, y: 0.2, z: 0.34}
+  ScaleMulVariable:
+    name: 
+    requiredType: 5
+    Tooltip: 
+  RandomizeScale: {x: 0, y: 0, z: 0}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 671fd9c659a53a04eb310656f11c9125, type: 3}
+  m_Name: Door Hole
+  m_EditorClassIdentifier: 
+  TemporaryContainer: {fileID: 0}
+  Enabled: 1
+  ModTag: Hole
+  DrawMeshAndBox: 0
+  Combine: 0
+  RunEmittersIfContains: 0
+  DrawSetupFor: 0
+  OStamp: {fileID: 0}
+  DrawObjectStamps: 1
+  OMultiStamp: {fileID: 0}
+  PrefabsList:
+  - Prefab: {fileID: 1892847821666117102, guid: cd25cf3d7c6ff0e4cb4a7056c87c3ba9, type: 3}
+    MainCollider: {fileID: 3815888047148569626, guid: cd25cf3d7c6ff0e4cb4a7056c87c3ba9, type: 3}
+    subID: 0
+    _refMesh: {fileID: 4300000, guid: c9eb1c81668cbcd41bb3aba898e50112, type: 3}
+    _refCol: {fileID: 3815888047148569626, guid: cd25cf3d7c6ff0e4cb4a7056c87c3ba9, type: 3}
+  DrawMultiObjectStamps: 1
+  Spawners:
+  - Enabled: 1
+    Name: Door hole
+    SpawnerTag: 
+    StampPrefabID: 0
+    Parent: {fileID: 11400000}
+    Rules:
+    - {fileID: 1260133600534677157}
+    - {fileID: -194319482450180852}
+    Mode: 0
+    CellCheckMode: 0
+    _Editor_SpawnerAdvancedOptionsFoldout: 0
+    OnScalledGrid: 0
+    Repeat: 1
+    DontInheritRotations: 0
+    SwitchSpawnedToStatic: 0
+    MultipleToSpawn: 0
+    UseGlobalRules: 1
+    UseParentPackageRules: 1
+    _wasEnablingGlobalRules: 1
+    ScaleAccess: 1
+    DisplayPreviewGUI: 1
+    IsSubSpawner: 0
+    _EditorDisplaySpawnerHeader: 1
+  SubSpawners:
+  - Enabled: 1
+    Name: Door hole
+    SpawnerTag: 
+    StampPrefabID: -2
+    Parent: {fileID: 11400000}
+    Rules:
+    - {fileID: 4871957151638982214}
+    Mode: 0
+    CellCheckMode: 0
+    _Editor_SpawnerAdvancedOptionsFoldout: 0
+    OnScalledGrid: 0
+    Repeat: 1
+    DontInheritRotations: 1
+    SwitchSpawnedToStatic: 0
+    MultipleToSpawn: 0
+    UseGlobalRules: 0
+    UseParentPackageRules: 1
+    _wasEnablingGlobalRules: 0
+    ScaleAccess: 1
+    DisplayPreviewGUI: 1
+    IsSubSpawner: 0
+    _EditorDisplaySpawnerHeader: 1
+  VariantOf: {fileID: 0}
+  _editor_drawStamp: 1
+  _editor_drawSpawners: 1
+  _editor_drawGlobalRules: 0
+  _editor_drawModPackRules: 0
+  _editor_shareSelected: 0
+  ParentPreset: {fileID: 0}
+  ParentPack: {fileID: 0}
+--- !u!114 &1260133600534677157
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93fc507b1b266014ab43f9ce92622c2a, type: 3}
+  m_Name: 'SR_DoorwayPlacer-[Door Hole]'
+  m_EditorClassIdentifier: 
+  Logic: 0
+  Negate: 0
+  Global: 0
+  Enabled: 1
+  Ignore: 0
+  _editor_drawRule: 1
+  CellAllow: 1
+  AllConditionsMet: 1
+  replaceOnTag: wall
+  CheckMode: 0
+  Offset: {x: -1, y: 0, z: 1}
+  OffsetMode: 0
+  YawRotationOffset: 90
+  RemoveDistance: 3.89
+  DistanceSource: 0
+  DebugDirection: 0
+  DrawDebugGizmos: 0
+--- !u!114 &4871957151638982214
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93fc507b1b266014ab43f9ce92622c2a, type: 3}
+  m_Name: 'SR_DoorwayPlacer-[Door Hole]'
+  m_EditorClassIdentifier: 
+  Logic: 0
+  Negate: 0
+  Global: 0
+  Enabled: 1
+  Ignore: 0
+  _editor_drawRule: 1
+  CellAllow: 0
+  AllConditionsMet: 1
+  replaceOnTag: 
+  CheckMode: 0
+  Offset: {x: 0, y: 0, z: 0}
+  OffsetMode: 0
+  YawRotationOffset: 0
+  RemoveDistance: 0.1
+  DistanceSource: 0
+  DebugDirection: 0
+  DrawDebugGizmos: 0
