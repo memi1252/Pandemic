@@ -1,24 +1,53 @@
 ﻿using System;
+using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace TextInspectSystem
 {
-    public class TextInspectItem : MonoBehaviour
+    public class TextInspectItem : NetworkBehaviour
     {
         public static TextInspectItem Instance { get; private set; }
         [Header("Show Information Selection")]
-        [SerializeField] private bool showObjectName;
-        [SerializeField] private bool showObjectDetails;
+        [SerializeField] public bool showObjectName;
+        [SerializeField] public bool showObjectDetails;
         [SerializeField] private bool playDetailsAudio;
         [SerializeField] public bool Door;
         [SerializeField] public bool shoes;
+        [SerializeField] public bool gloves;
+        [SerializeField] public bool heavy;
+        [SerializeField] public GameObject Prefabs = null;
+        [SerializeField] public Material material = null;
+
+        [System.Serializable]
+        public struct memory
+        {
+            public bool start;
+            public bool reset;
+            public bool red;
+            public bool ornage;
+            public bool yellow;
+            public bool green;
+            public bool blue;
+            public bool darkblue;
+            public bool purple;
+            public bool brown;
+            public bool pick;
+        }
+        [Header("memory")]
+        public memory memorys;
+        public bool ismemory;
+
+        [Header("SpatialIntelligenceAbility")] 
+        public bool isSpatialIntelligenceAbility;
+        public int posX;
+        public int posY;
 
         [Header("Text Parameters")]
         [SerializeField] public string objectName = "Generic Object";
 
-        [Space(10)] [TextArea] [SerializeField] private string objectDetails = "This is a description, please fill in the inspector";
+        [Space(10)] [TextArea] [SerializeField] public string objectDetails = "This is a description, please fill in the inspector";
 
         [Header("Audio Parameters")]
         [SerializeField] private AudioClip detailsAudioClip;

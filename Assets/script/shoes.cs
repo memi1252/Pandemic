@@ -1,3 +1,4 @@
+// Shoes.cs
 using System;
 using Unity.Netcode;
 using UnityEngine;
@@ -15,30 +16,30 @@ public class Shoes : NetworkBehaviour
 
     public void Interaction()
     {
-        GravitationCore.SetActive(true);
-        HideServerRpc();
+        var player = NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<Player>();
+        if (player != null && !player.isshoes.Value)
+        {
+            player.SetShoes(true);
+            GravitationCore.SetActive(true);
+            DestroyServerRpc();
+        }
     }
 
-    private void Show()
+    private void DestroyObject()
     {
-        gameObject.SetActive(true);
-    }
-
-    private void Hide()
-    {
-        gameObject.SetActive(false);
+        Destroy(gameObject);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void HideServerRpc()
+    private void DestroyServerRpc()
     {
-        Hide();
-        HideClientRpc();
+        DestroyObject();
+        DestroyClientRpc();
     }
 
     [ClientRpc]
-    private void HideClientRpc()
+    private void DestroyClientRpc()
     {
-        Hide();
+        DestroyObject();
     }
 }

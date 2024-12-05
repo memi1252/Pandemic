@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using TextInspectSystem;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -17,7 +19,6 @@ public class Player : NetworkBehaviour
     [SerializeField] private float kickRange = 10f;
     [SerializeField] private HPBarUI hpBarUI;
     [SerializeField] private float groundCheckDistance = 0.1f;
-    [SerializeField] private bool isShoesInspector;
 
     public bool up = false;
     public bool down = false;
@@ -38,6 +39,8 @@ public class Player : NetworkBehaviour
     private NetworkVariable<bool> isJumping = new NetworkVariable<bool>();
     private NetworkVariable<bool> isKicking = new NetworkVariable<bool>();
     public NetworkVariable<bool> isshoes = new NetworkVariable<bool>(false);
+    public NetworkVariable<bool> isgloves = new NetworkVariable<bool>(false);
+    public NetworkVariable<bool> ispickUpitme = new NetworkVariable<bool>(false);
     private NetworkVariable<Vector3> gravity = new NetworkVariable<Vector3>(new Vector3(0, -9.8f, 0));
 
     private Animator playerAnim;
@@ -72,7 +75,9 @@ public class Player : NetworkBehaviour
         float verticalInput = Input.GetAxis("Vertical");
         bool jumpInput = Input.GetKeyDown(KeyCode.Space);
         bool kickInput = Input.GetKeyDown(KeyCode.Mouse1);
-        MoveServerRpc(horizontalInput, verticalInput, jumpInput, kickInput);
+        bool runInput = Input.GetKey(KeyCode.LeftShift);
+        bool itmeDrop = Input.GetKeyDown(KeyCode.Backspace);
+        MoveServerRpc(horizontalInput, verticalInput, jumpInput, kickInput, runInput, itmeDrop);
     }
 
     private void CheckGrounded()
@@ -109,19 +114,34 @@ public class Player : NetworkBehaviour
     }
 
     [ServerRpc]
-    private void MoveServerRpc(float horizontalInput, float verticalInput, bool jumpInput, bool kickInput)
+    private void MoveServerRpc(float horizontalInput, float verticalInput, bool jumpInput, bool kickInput, bool runInput, bool itmeDrop)
     {
         var moveDir = new Vector3(horizontalInput, 0, verticalInput);
-        MoveClientRpc(moveDir, jumpInput, kickInput, jumpForce.Value, gravity.Value);
+        MoveClientRpc(moveDir, jumpInput, kickInput, jumpForce.Value, gravity.Value, runInput,itmeDrop);
         UpdateAnimationState(horizontalInput, verticalInput, jumpInput, kickInput);
     }
 
     [ClientRpc]
-    private void MoveClientRpc(Vector3 moveDir, bool jumpInput, bool kickInput, float syncedJumpForce, Vector3 syncedGravity)
+    private void MoveClientRpc(Vector3 moveDir, bool jumpInput, bool kickInput, float syncedJumpForce, Vector3 syncedGravity, bool runInput, bool itmeDrop)
     {
         Physics.gravity = syncedGravity; // Apply synchronized gravity
 
-        transform.Translate(moveDir * moveSpeed * Time.deltaTime);
+        if (runInput)
+        {
+            transform.Translate(moveDir * (moveSpeed + 3) * Time.deltaTime);
+        }
+        else
+        {
+            transform.Translate(moveDir * moveSpeed * Time.deltaTime);
+        }
+
+        if (itmeDrop)
+        {
+            if (IsOwner && ispickUpitme.Value)
+            {
+                DropItem();
+            }
+        }
 
         if (jumpInput && isGrounded.Value)
         {
@@ -139,6 +159,77 @@ public class Player : NetworkBehaviour
         {
             NotifyKickingServerRpc(false);
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SpawnAndDropItemServerRpc(NetworkObjectReference itemPrefabRef, Vector3 position, Quaternion rotation)
+    {
+        // 네트워크 오브젝트 참조 가져오기
+        if (!itemPrefabRef.TryGet(out NetworkObject prefab))
+        {
+            Debug.LogError("Failed to get prefab network object");
+            return;
+        }
+
+        // 프리팹 인스턴스화
+        var instantiatedObject = Instantiate(prefab.gameObject, position, rotation);
+        instantiatedObject.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+
+        var itemCollider = instantiatedObject.GetComponent<Collider>();
+        if (itemCollider != null)
+        {
+            itemCollider.enabled = true;
+            var playerCollider = GetComponent<Collider>();
+
+            if (playerCollider != null)
+            {
+                Physics.IgnoreCollision(itemCollider, playerCollider, true);
+            }
+        }
+
+        instantiatedObject.AddComponent<Rigidbody>();
+
+        // 네트워크 오브젝트 스폰
+        var networkObject = instantiatedObject.GetComponent<NetworkObject>();
+        if (networkObject != null)
+        {
+            networkObject.Spawn(true); // true means it's owned by the server
+        }
+        else
+        {
+            Debug.LogError("No NetworkObject component found on instantiated object");
+            Destroy(instantiatedObject);
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DespawnItemServerRpc()
+    {
+        var networkObject = transform.GetChild(5).GetComponent<NetworkObject>();
+        if (networkObject != null)
+        {
+            networkObject.Despawn();
+        }
+    }
+
+    private void DropItem()
+    {
+        var textInspectInteractor = transform.GetChild(5).GetComponent<TextInspectItem>();
+
+        // 프리팹을 NetworkObjectReference로 변환
+        NetworkObjectReference prefabRef = textInspectInteractor.Prefabs.GetComponent<NetworkObject>();
+
+        // 서버에 스폰 요청
+        SpawnAndDropItemServerRpc(
+            prefabRef,
+            transform.GetChild(4).position,
+            transform.GetChild(4).rotation
+        );
+
+        SetPickUp(false);
+
+        // 서버에 Despawn 요청
+        DespawnItemServerRpc();
     }
 
     private void Kick()
@@ -208,12 +299,12 @@ public class Player : NetworkBehaviour
             hpBarUI.UpdateHP(playerHP);
         }
     }
-    
+
     private void OnShoesChanged(bool oldValue, bool newValue)
     {
-        isShoesInspector = newValue; // Update the Inspector variable
+
     }
-    
+
     public void SetShoes(bool value)
     {
         if (IsServer)
@@ -225,11 +316,47 @@ public class Player : NetworkBehaviour
             SetShoesServerRpc(value);
         }
     }
-    
+
     [ServerRpc(RequireOwnership = false)]
     private void SetShoesServerRpc(bool value)
     {
         isshoes.Value = value;
+    }
+
+    public void SetGlove(bool value)
+    {
+        if (IsServer)
+        {
+            isgloves.Value = value;
+        }
+        else
+        {
+            SetGloveServerRpc(value);
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SetGloveServerRpc(bool value)
+    {
+        isgloves.Value = value;
+    }
+
+    public void SetPickUp(bool value)
+    {
+        if (IsServer)
+        {
+            ispickUpitme.Value = value;
+        }
+        else
+        {
+            SetPickUpServerRpc(value);
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SetPickUpServerRpc(bool value)
+    {
+        ispickUpitme.Value = value;
     }
 
     void OnDrawGizmosSelected()
