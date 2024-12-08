@@ -38,6 +38,7 @@ public class Player : NetworkBehaviour
     private NetworkVariable<bool> isWalking = new NetworkVariable<bool>();
     private NetworkVariable<bool> isJumping = new NetworkVariable<bool>();
     private NetworkVariable<bool> isKicking = new NetworkVariable<bool>();
+    private NetworkVariable<bool> isRunning = new NetworkVariable<bool>();
     public NetworkVariable<bool> isshoes = new NetworkVariable<bool>(false);
     public NetworkVariable<bool> isgloves = new NetworkVariable<bool>(false);
     public NetworkVariable<bool> ispickUpitme = new NetworkVariable<bool>(false);
@@ -118,7 +119,7 @@ public class Player : NetworkBehaviour
     {
         var moveDir = new Vector3(horizontalInput, 0, verticalInput);
         MoveClientRpc(moveDir, jumpInput, kickInput, jumpForce.Value, gravity.Value, runInput,itmeDrop);
-        UpdateAnimationState(horizontalInput, verticalInput, jumpInput, kickInput);
+        UpdateAnimationState(horizontalInput, verticalInput, jumpInput, kickInput, runInput);
     }
 
     [ClientRpc]
@@ -247,32 +248,34 @@ public class Player : NetworkBehaviour
         }
     }
 
-    private void UpdateAnimationState(float horizontalInput, float verticalInput, bool jumpInput, bool kickInput)
+    private void UpdateAnimationState(float horizontalInput, float verticalInput, bool jumpInput, bool kickInput, bool runInput)
     {
         isWalking.Value = horizontalInput != 0 || verticalInput != 0;
         isJumping.Value = !isGrounded.Value;
+        isRunning.Value = (horizontalInput != 0 || verticalInput != 0) && runInput;
 
-        UpdateAnimationClientRpc(isWalking.Value, isJumping.Value, isKicking.Value);
+        UpdateAnimationClientRpc(isWalking.Value, isJumping.Value, isKicking.Value, isRunning.Value);
     }
 
     [ClientRpc]
-    private void UpdateAnimationClientRpc(bool walking, bool jumping, bool kicking)
+    private void UpdateAnimationClientRpc(bool walking, bool jumping, bool kicking, bool running)
     {
         playerAnim.SetBool("isWalk", walking);
         playerAnim.SetBool("isjump", jumping);
         playerAnim.SetBool("iskick", kicking);
+        playerAnim.SetBool("isRun", running);
     }
 
     [ServerRpc(RequireOwnership = false)]
     private void NotifyGroundedServerRpc()
     {
-        UpdateAnimationState(0, 0, false, false);
+        UpdateAnimationState(0, 0, false, false, false);
     }
 
     [ServerRpc(RequireOwnership = false)]
     private void NotifyJumpedServerRpc()
     {
-        UpdateAnimationState(0, 0, true, false);
+        UpdateAnimationState(0, 0, true, false, false);
     }
 
     [ServerRpc(RequireOwnership = false)]

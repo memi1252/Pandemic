@@ -19,6 +19,8 @@ namespace TextInspectSystem
         [SerializeField] public bool heavy;
         [SerializeField] public GameObject Prefabs = null;
         [SerializeField] public Material material = null;
+        [SerializeField] public bool stone;
+        [SerializeField] public int stoneNumber;
 
         [System.Serializable]
         public struct memory
