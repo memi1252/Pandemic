@@ -33,4 +33,47 @@ public class CollectionOfSculptures : NetworkBehaviour
     {
         Debug.Log("오픈 도어");
     }
+    
+    [ServerRpc(RequireOwnership = false)]
+    public void UpdateStone1ServerRpc(bool value, int index)
+    {
+
+        if (index == 1)
+        {
+            stone1 = value;
+        }else if (index == 2)
+        {
+            stone2 = value;
+        }
+        else if (index == 3)
+        {
+            stone3 = value;
+        }
+        else if (index == 4)
+        {
+            stone4 = value;
+        }
+        
+        UpdateStone1ClientRpc(value, index);
+    }
+
+    [ClientRpc]
+    private void UpdateStone1ClientRpc(bool value,int index)
+    {
+        if (index == 1)
+        {
+            stone1 = value;
+        }else if (index == 2)
+        {
+            stone2 = value;
+        }
+        else if (index == 3)
+        {
+            stone3 = value;
+        }
+        else if (index == 4)
+        {
+            stone4 = value;
+        }
+    }
 }

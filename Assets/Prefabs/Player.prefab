@@ -230,6 +230,11 @@ MonoBehaviour:
   kickRange: 2.5
   hpBarUI: {fileID: 0}
   groundCheckDistance: 0.1
+  spawnPoints:
+  - {x: -6, y: 0, z: 0}
+  - {x: -3, y: 0, z: 0}
+  - {x: 3, y: 0, z: 0}
+  - {x: 6, y: 0, z: 0}
   up: 0
   down: 1
   left: 0
@@ -242,6 +247,14 @@ MonoBehaviour:
   isgloves:
     m_InternalValue: 0
   ispickUpitme:
+    m_InternalValue: 0
+  ispickUpStone1:
+    m_InternalValue: 0
+  ispickUpStone2:
+    m_InternalValue: 0
+  ispickUpStone3:
+    m_InternalValue: 0
+  ispickUpStone4:
     m_InternalValue: 0
 --- !u!114 &7975123917660156383
 MonoBehaviour:
@@ -361,7 +374,7 @@ Transform:
   m_GameObject: {fileID: 1740691340966921879}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.01, z: 0.89}
+  m_LocalPosition: {x: 0, y: 1.49, z: 0.7}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []

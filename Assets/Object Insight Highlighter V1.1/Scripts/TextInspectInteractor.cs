@@ -98,7 +98,7 @@ public class TextInspectInteractor : NetworkBehaviour
             {
                 HandleGlovesInteraction(clickedObject, player);
             }
-            else if (textInspectItem.heavy)
+            else if (textInspectItem.heavy || textInspectItem.stone)
             {
                 HandleHeavyInteraction(textInspectItem, player);
             }
@@ -110,10 +110,10 @@ public class TextInspectInteractor : NetworkBehaviour
             {
                 HandleSpatialIntelligenceAbilityInteractionServerRpc(clickedObject.GetComponent<NetworkObject>()
                     .NetworkObjectId);
-            }
-            else if (textInspectItem.stone)
+            }else if (player.ispickUpStone1.Value || player.ispickUpStone2.Value || player.ispickUpStone3.Value ||
+                      player.ispickUpStone4.Value)
             {
-                HandleStoneInteraction(clickedObject, player);
+                PutThePiecesTogether(textInspectItem, player, clickedObject);
             }
         }
     }
@@ -156,8 +156,12 @@ public class TextInspectInteractor : NetworkBehaviour
     {
         if (player.transform.childCount > 4)
         {
-            if (player.isgloves.Value)
+            if (player.isgloves.Value || textInspectItem.stone)
             {
+                if (player.ispickUpitme.Value)
+                {
+                    return;
+                }
                 textInspectItem.showObjectDetails = false;
                 var networkObject = textInspectItem.GetComponent<NetworkObject>();
                 if (networkObject != null && networkObject.IsSpawned)
@@ -167,6 +171,19 @@ public class TextInspectInteractor : NetworkBehaviour
                         player.transform.GetChild(4).position, player.transform.GetChild(4).rotation);
                     DestroyItemServerRpc(networkObject.NetworkObjectId);
                     player.SetPickUp(true);
+                    UpdatePickUpStoneServerRpc(player.NetworkObjectId, textInspectItem.stoneNumber,  true);
+                    CollectionOfSculptures.Instance.UpdateStone1ServerRpc(false, textInspectItem.stoneNumber);
+                }
+                
+                var itemCollider = textInspectItem.GetComponent<Collider>();
+                if (itemCollider != null)
+                {
+                    itemCollider.enabled = true;
+                    var playerCollider = GetComponent<Collider>();
+                    if (playerCollider != null)
+                    {
+                        Physics.IgnoreCollision(itemCollider, playerCollider, false);
+                    }
                 }
             }
             else
@@ -176,7 +193,80 @@ public class TextInspectInteractor : NetworkBehaviour
             }
         }
     }
+    
+    void PutThePiecesTogether(TextInspectItem textInspectItem, Player player, GameObject clickedObject)
+    {
+        if (textInspectItem != null)
+        {
+            if (textInspectItem.StoneCase)
+            {
+                if (textInspectItem.isStonePutNumber == 1)
+                {
+                    if (player.ispickUpStone1.Value)
+                    {
+                        player.ItemPutCase(clickedObject);
+                        UpdatePickUpStoneServerRpc(player.NetworkObjectId, 1, false);
+                        CollectionOfSculptures.Instance.UpdateStone1ServerRpc(true, 1);
+                    }
+                }
+                else if (textInspectItem.isStonePutNumber == 2)
+                {
+                    if (player.ispickUpStone2.Value)
+                    {
+                        player.ItemPutCase(clickedObject);
+                        UpdatePickUpStoneServerRpc(player.NetworkObjectId, 2, false);
+                        CollectionOfSculptures.Instance.UpdateStone1ServerRpc(true, 2);
+                    }
+                }
+                else if (textInspectItem.isStonePutNumber == 3)
+                {
+                    if (player.ispickUpStone3.Value)
+                    {
+                        player.ItemPutCase(clickedObject);
+                        UpdatePickUpStoneServerRpc(player.NetworkObjectId, 3, false);
+                        CollectionOfSculptures.Instance.UpdateStone1ServerRpc(true, 3);
+                    }
+                }
+                else if (textInspectItem.isStonePutNumber == 4)
+                {
+                    if (player.ispickUpStone4.Value)
+                    {
+                        player.ItemPutCase(clickedObject);
+                        UpdatePickUpStoneServerRpc(player.NetworkObjectId, 4, false);
+                        CollectionOfSculptures.Instance.UpdateStone1ServerRpc(true, 4);
+                    }
+                }
+            }
+        }
+    }
 
+    [ServerRpc(RequireOwnership = false)]
+    void UpdatePickUpStoneServerRpc(ulong playerNetworkObjectId, int stoneNumber, bool value)
+    {
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(playerNetworkObjectId, out var playerObject))
+        {
+            var player = playerObject.GetComponent<Player>();
+            if (player != null)
+            {
+                switch (stoneNumber)
+                {
+                    case 1:
+                        player.ispickUpStone1.Value = value;
+                        break;
+                    case 2:
+                        player.ispickUpStone2.Value = value;
+                        break;
+                    case 3:
+                        player.ispickUpStone3.Value = value;
+                        break;
+                    case 4:
+                        player.ispickUpStone4.Value = value;
+                        break;
+                }
+            }
+        }
+    }
+    
     [ServerRpc(RequireOwnership = false)]
     void SpawnHeavyItemServerRpc(ulong playerNetworkObjectId, NetworkObjectReference prefabReference, Vector3 position,
         Quaternion rotation)
@@ -187,6 +277,8 @@ public class TextInspectInteractor : NetworkBehaviour
         }
 
         var instantiatedObject = Instantiate(prefab, position, rotation);
+        instantiatedObject.GetComponent<Collider>().enabled = false;
+        instantiatedObject.GetComponent<TextInspectItem>().enabled = false;
         var networkObject = instantiatedObject.GetComponent<NetworkObject>();
         if (networkObject == null)
         {
@@ -752,73 +844,6 @@ public class TextInspectInteractor : NetworkBehaviour
                     ? Spatialintelligence.Instance.clickColor
                     : Spatialintelligence.Instance.defaultColor;
             }
-        }
-    }
-
-    void HandleStoneInteraction(GameObject clickedObject, Player player)
-    {
-        var networkObject = clickedObject.GetComponent<NetworkObject>();
-        if (networkObject != null)
-        {
-            HandleStoneInteractionServerRpc(networkObject.NetworkObjectId, player.NetworkObjectId);
-        }
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    void HandleStoneInteractionServerRpc(ulong clickedObjectNetworkId, ulong playerNetworkObjectId)
-    {
-        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(clickedObjectNetworkId,
-                out var clickedObject))
-        {
-            TextInspectItem textInspectItem = clickedObject.GetComponent<TextInspectItem>();
-            var networkObject = textInspectItem.GetComponent<NetworkObject>();
-            var player = NetworkManager.Singleton.SpawnManager.SpawnedObjects[playerNetworkObjectId]
-                .GetComponent<Player>();
-
-            if (textInspectItem.stoneNumber == 1)
-            {
-                CollectionOfSculptures.Instance.stone1 = true;
-            }
-            else if (textInspectItem.stoneNumber == 2)
-            {
-                CollectionOfSculptures.Instance.stone2 = true;
-            }
-            else if (textInspectItem.stoneNumber == 3)
-            {
-                CollectionOfSculptures.Instance.stone3 = true;
-            }
-            else if (textInspectItem.stoneNumber == 4)
-            {
-                CollectionOfSculptures.Instance.stone4 = true;
-            }
-
-            UpdateStoneClientRpc(textInspectItem.stoneNumber, clickedObjectNetworkId);
-        }
-    }
-
-    [ClientRpc]
-    void UpdateStoneClientRpc(int stoneNumber, ulong clickedObjectNetworkId)
-    {
-        switch (stoneNumber)
-        {
-            case 1:
-                CollectionOfSculptures.Instance.stone1 = true;
-                break;
-            case 2:
-                CollectionOfSculptures.Instance.stone2 = true;
-                break;
-            case 3:
-                CollectionOfSculptures.Instance.stone3 = true;
-                break;
-            case 4:
-                CollectionOfSculptures.Instance.stone4 = true;
-                break;
-        }
-
-        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(clickedObjectNetworkId,
-                out var networkObject))
-        {
-            Destroy(networkObject.gameObject);
         }
     }
 }

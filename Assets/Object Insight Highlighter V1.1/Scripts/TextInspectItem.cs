@@ -21,6 +21,8 @@ namespace TextInspectSystem
         [SerializeField] public Material material = null;
         [SerializeField] public bool stone;
         [SerializeField] public int stoneNumber;
+        [SerializeField] public int isStonePutNumber;
+        [SerializeField] public bool StoneCase;
 
         [System.Serializable]
         public struct memory

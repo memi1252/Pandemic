@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using NUnit.Framework;
 using TextInspectSystem;
 using Unity.Netcode;
 using UnityEngine;
@@ -19,6 +20,7 @@ public class Player : NetworkBehaviour
     [SerializeField] private float kickRange = 10f;
     [SerializeField] private HPBarUI hpBarUI;
     [SerializeField] private float groundCheckDistance = 0.1f;
+    [SerializeField] private Vector3[] spawnPoints;
 
     public bool up = false;
     public bool down = false;
@@ -42,6 +44,10 @@ public class Player : NetworkBehaviour
     public NetworkVariable<bool> isshoes = new NetworkVariable<bool>(false);
     public NetworkVariable<bool> isgloves = new NetworkVariable<bool>(false);
     public NetworkVariable<bool> ispickUpitme = new NetworkVariable<bool>(false);
+    public NetworkVariable<bool> ispickUpStone1 = new NetworkVariable<bool>(false);
+    public NetworkVariable<bool> ispickUpStone2 = new NetworkVariable<bool>(false);
+    public NetworkVariable<bool> ispickUpStone3 = new NetworkVariable<bool>(false);
+    public NetworkVariable<bool> ispickUpStone4 = new NetworkVariable<bool>(false);
     private NetworkVariable<Vector3> gravity = new NetworkVariable<Vector3>(new Vector3(0, -9.8f, 0));
 
     private Animator playerAnim;
@@ -80,7 +86,7 @@ public class Player : NetworkBehaviour
         bool itmeDrop = Input.GetKeyDown(KeyCode.Backspace);
         MoveServerRpc(horizontalInput, verticalInput, jumpInput, kickInput, runInput, itmeDrop);
     }
-
+    
     private void CheckGrounded()
     {
         RaycastHit hit;
@@ -181,7 +187,8 @@ public class Player : NetworkBehaviour
         {
             itemCollider.enabled = true;
             var playerCollider = GetComponent<Collider>();
-
+            
+            
             if (playerCollider != null)
             {
                 Physics.IgnoreCollision(itemCollider, playerCollider, true);
@@ -217,10 +224,25 @@ public class Player : NetworkBehaviour
     {
         var textInspectInteractor = transform.GetChild(5).GetComponent<TextInspectItem>();
 
-        // 프리팹을 NetworkObjectReference로 변환
+        // Convert prefab to NetworkObjectReference
         NetworkObjectReference prefabRef = textInspectInteractor.Prefabs.GetComponent<NetworkObject>();
 
-        // 서버에 스폰 요청
+        // Request server to update the stone pick-up status
+        UpdatePickUpStoneServerRpc(NetworkObjectId, textInspectInteractor.stoneNumber, false);
+
+        // Enable collider and restore collision
+        var itemCollider = textInspectInteractor.GetComponent<Collider>();
+        if (itemCollider != null)
+        {
+            itemCollider.enabled = true;
+            var playerCollider = GetComponent<Collider>();
+            if (playerCollider != null)
+            {
+                Physics.IgnoreCollision(itemCollider, playerCollider, false);
+            }
+        }
+
+        // Request server to spawn the item
         SpawnAndDropItemServerRpc(
             prefabRef,
             transform.GetChild(4).position,
@@ -229,7 +251,7 @@ public class Player : NetworkBehaviour
 
         SetPickUp(false);
 
-        // 서버에 Despawn 요청
+        // Request server to despawn the item
         DespawnItemServerRpc();
     }
 
@@ -289,8 +311,18 @@ public class Player : NetworkBehaviour
         base.OnNetworkSpawn();
         if (IsOwner)
         {
-            hpBarUI = FindObjectOfType<HPBarUI>();
-            hpBarUI.SetPlayer(this);
+            if (hpBarUI != null)
+            {
+                hpBarUI = FindObjectOfType<HPBarUI>();
+                hpBarUI.SetPlayer(this);
+            }
+        }
+
+        if (IsServer)
+        {
+            // Set player spawn position
+            int spawnIndex = (int)(NetworkObjectId % (ulong)spawnPoints.Length);
+            transform.position = spawnPoints[spawnIndex];
         }
     }
 
@@ -361,6 +393,123 @@ public class Player : NetworkBehaviour
     {
         ispickUpitme.Value = value;
     }
+    
+    [ServerRpc(RequireOwnership = false)]
+    private void SpawnAndCaseItemServerRpc(NetworkObjectReference itemPrefabRef, Vector3 position, Quaternion rotation)
+    {
+        // 네트워크 오브젝트 참조 가져오기
+        if (!itemPrefabRef.TryGet(out NetworkObject prefab))
+        {
+            Debug.LogError("Failed to get prefab network object");
+            return;
+        }
+
+        // 프리팹 인스턴스화
+        var instantiatedObject = Instantiate(prefab.gameObject, position, rotation);
+        instantiatedObject.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+        instantiatedObject.GetComponent<Collider>().enabled = true;
+        instantiatedObject.GetComponent<TextInspectItem>().enabled = true;
+        var itemCollider = instantiatedObject.GetComponent<Collider>();
+        if (itemCollider != null)
+        {
+            itemCollider.enabled = true;
+            var playerCollider = GetComponent<Collider>();
+            
+            
+            if (playerCollider != null)
+            {
+                Physics.IgnoreCollision(itemCollider, playerCollider, true);
+            }
+        }
+
+        // 네트워크 오브젝트 스폰
+        var networkObject = instantiatedObject.GetComponent<NetworkObject>();
+        if (networkObject != null)
+        {
+            networkObject.Spawn(true); // true means it's owned by the server
+        }
+        else
+        {
+            Debug.LogError("No NetworkObject component found on instantiated object");
+            Destroy(instantiatedObject);
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DespawnItemCaseServerRpc()
+    {
+        var networkObject = transform.GetChild(5).GetComponent<NetworkObject>();
+        if (networkObject != null)
+        {
+            networkObject.Despawn();
+        }
+    }
+    
+    public void ItemPutCase(GameObject clickobject)
+    {
+        var textInspectInteractor = transform.GetChild(5).GetComponent<TextInspectItem>();
+
+        // Convert prefab to NetworkObjectReference
+        NetworkObjectReference prefabRef = textInspectInteractor.Prefabs.GetComponent<NetworkObject>();
+
+        if (textInspectInteractor.stoneNumber == 1)
+        {
+            UpdatePickUpStoneServerRpc(NetworkObjectId, 1, false);
+        }
+        else if (textInspectInteractor.stoneNumber == 2)
+        {
+            UpdatePickUpStoneServerRpc(NetworkObjectId, 2, false);
+        }
+        else if (textInspectInteractor.stoneNumber == 3)
+        {
+            UpdatePickUpStoneServerRpc(NetworkObjectId, 3, false);
+        }
+        else if (textInspectInteractor.stoneNumber == 4)
+        {
+            UpdatePickUpStoneServerRpc(NetworkObjectId, 4, false);
+        }
+
+        // Request server to spawn the item
+        SpawnAndCaseItemServerRpc(
+            prefabRef,
+            clickobject.transform.GetChild(0).position,
+            clickobject.transform.GetChild(0).rotation
+        );
+
+        SetPickUp(false);
+
+        // Request server to despawn the item
+        DespawnItemCaseServerRpc();
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    void UpdatePickUpStoneServerRpc(ulong playerNetworkObjectId, int stoneNumber, bool value)
+    {
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(playerNetworkObjectId, out var playerObject))
+        {
+            var player = playerObject.GetComponent<Player>();
+            if (player != null)
+            {
+                switch (stoneNumber)
+                {
+                    case 1:
+                        player.ispickUpStone1.Value = value;
+                        break;
+                    case 2:
+                        player.ispickUpStone2.Value = value;
+                        break;
+                    case 3:
+                        player.ispickUpStone3.Value = value;
+                        break;
+                    case 4:
+                        player.ispickUpStone4.Value = value;
+                        break;
+                }
+            }
+        }
+    }
+    
+    
 
     void OnDrawGizmosSelected()
     {

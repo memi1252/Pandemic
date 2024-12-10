@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 5088145425074051431}
   - component: {fileID: 621980112651082106}
   - component: {fileID: 6096000327874181525}
+  - component: {fileID: 4364497388391256664}
   - component: {fileID: 577229191103415703}
   - component: {fileID: 572951084838912195}
-  - component: {fileID: 4364497388391256664}
   - component: {fileID: 2460258538060090317}
   m_Layer: 0
   m_Name: Cube
@@ -112,6 +112,31 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &4364497388391256664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1340616627742847002}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 1155365732
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &577229191103415703
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -124,6 +149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8d0e807d8fd0c14f83265065942fd92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   showObjectName: 1
   showObjectDetails: 1
   playDetailsAudio: 0
@@ -133,6 +159,24 @@ MonoBehaviour:
   heavy: 1
   Prefabs: {fileID: 1340616627742847002}
   material: {fileID: 0}
+  stone: 0
+  stoneNumber: 0
+  memorys:
+    start: 0
+    reset: 0
+    red: 0
+    ornage: 0
+    yellow: 0
+    green: 0
+    blue: 0
+    darkblue: 0
+    purple: 0
+    brown: 0
+    pick: 0
+  ismemory: 0
+  isSpatialIntelligenceAbility: 0
+  posX: 0
+  posY: 0
   objectName: "\uB3CC"
   objectDetails: "\uC5C4\uCCAD\uBB34\uAC81\uB2E4."
   detailsAudioClip: {fileID: 0}
@@ -164,31 +208,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &4364497388391256664
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1340616627742847002}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1155365732
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  DeferredDespawnTick: 0
-  Ownership: 1
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
 --- !u!114 &2460258538060090317
 MonoBehaviour:
   m_ObjectHideFlags: 0
